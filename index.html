@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>iOS-style Clock + Tasks (IST)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <button id="themeBtn" class="theme-toggle" title="Toggle light/dark" aria-label="Toggle theme"></button>
+
+  <main class="app" aria-live="polite">
+    <h1 id="clock" class="time">--:-- --</h1>
+    <div id="dateLine" class="date">Loading date…</div>
+
+    <div class="add-bar">
+      <input id="taskInput" type="text" placeholder="Add a task" autocomplete="off" aria-label="Task description" />
+      <button id="addBtn" title="Add task" aria-label="Add task">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+    </div>
+
+    <section class="tasks" aria-label="Task list">
+      <ul id="taskList" style="list-style:none; padding:0; margin:0;"></ul>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
