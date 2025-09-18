@@ -197,3 +197,39 @@
 
   fetchTasks(); // Initial load
 })();
+
+// SHA-256 function
+async function hashString(str) {
+  const buf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(str)
+  );
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// Precomputed hash of "0069"
+const PASSWORD_HASH =
+  "b9496b78de9917a6b216f92a7d03419d93269dc26280a72173c5a7f93cf0da1b";
+
+const overlay = document.getElementById("passcodeOverlay");
+const input = document.getElementById("passcodeInput");
+const submit = document.getElementById("passcodeSubmit");
+const error = document.getElementById("passcodeError");
+
+async function checkPasscode() {
+  const hashed = await hashString(input.value);
+  if (hashed === PASSWORD_HASH) {
+    overlay.style.display = "none"; // unlock app
+  } else {
+    error.textContent = "Incorrect passcode!";
+    input.value = "";
+    input.focus();
+  }
+}
+
+submit.addEventListener("click", checkPasscode);
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") checkPasscode();
+});

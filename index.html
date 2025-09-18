@@ -46,6 +46,22 @@
       </section>
     </main>
 
+    <!-- Password overlay -->
+    <div id="passcodeOverlay" class="overlay">
+      <div class="passcode-container">
+        <h2>Enter Passcode</h2>
+        <input
+          type="password"
+          id="passcodeInput"
+          maxlength="4"
+          placeholder="••••"
+          autofocus
+        />
+        <button id="passcodeSubmit">Enter</button>
+        <div id="passcodeError" class="error"></div>
+      </div>
+    </div>
+
     <script src="script.js"></script>
   </body>
 </html>
