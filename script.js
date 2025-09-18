@@ -1,48 +1,71 @@
 (() => {
-  const TZ = 'Asia/Kolkata';
-  const $ = (sel, el=document) => el.querySelector(sel);
+  const TZ = "Asia/Kolkata";
+  const $ = (sel, el = document) => el.querySelector(sel);
+  const API_BASE = "https://adityashetty35.pythonanywhere.com/todos/";
 
-  function escapeHTML(str){
-    return str.replace(/[&<>"']/g, m => (
-      { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":"&#39;" }[m]
-    ));
+  function escapeHTML(str) {
+    return str.replace(
+      /[&<>"']/g,
+      (m) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[m])
+    );
   }
-  function formatISTTime(d=new Date()){
-    const parts = new Intl.DateTimeFormat('en-IN', {
-      timeZone: TZ, hour:'numeric', minute:'2-digit', hour12:true
-    }).formatToParts(d);
-    const hh = parts.find(p=>p.type==='hour')?.value ?? '';
-    const mm = parts.find(p=>p.type==='minute')?.value ?? '';
-    const ap = (parts.find(p=>p.type==='dayPeriod')?.value ?? '').toUpperCase();
-    return `${hh}:${mm} ${ap}`.trim();
-  }
-  function formatISTDateLine(d=new Date()){
-    return new Intl.DateTimeFormat('en-IN', {
-      timeZone: TZ, weekday:'long', month:'long', day:'numeric'
-    }).format(d);
-  }
-  function formatISTStamp(isoString){
+
+  function formatISTStamp(isoString) {
     const d = isoString ? new Date(isoString) : new Date();
-    const time = new Intl.DateTimeFormat('en-IN', {
-      timeZone: TZ, hour:'numeric', minute:'2-digit', hour12:true
-    }).format(d).toUpperCase();
-    const date = new Intl.DateTimeFormat('en-IN', {
-      timeZone: TZ, weekday:'short', day:'2-digit', month:'short', year:'numeric'
+    const time = new Intl.DateTimeFormat("en-IN", {
+      timeZone: TZ,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+      .format(d)
+      .toUpperCase();
+    const date = new Intl.DateTimeFormat("en-IN", {
+      timeZone: TZ,
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     }).format(d);
     return `Added ${time} · ${date} IST`;
   }
 
-  const clockEl = $('#clock');
-  const dateEl  = $('#dateLine');
-  function tick(){
-    clockEl.textContent = formatISTTime();
-    dateEl.textContent  = formatISTDateLine();
+  const clockEl = $("#clock");
+  const dateEl = $("#dateLine");
+  function tick() {
+    const parts = new Intl.DateTimeFormat("en-IN", {
+      timeZone: TZ,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).formatToParts(new Date());
+    const hh = parts.find((p) => p.type === "hour")?.value ?? "";
+    const mm = parts.find((p) => p.type === "minute")?.value ?? "";
+    const ap = (
+      parts.find((p) => p.type === "dayPeriod")?.value ?? ""
+    ).toUpperCase();
+    clockEl.textContent = `${hh}:${mm} ${ap}`;
+    dateEl.textContent = new Intl.DateTimeFormat("en-IN", {
+      timeZone: TZ,
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    }).format(new Date());
   }
-  tick(); setInterval(tick, 1000);
+  tick();
+  setInterval(tick, 1000);
 
-  const themeBtn = $('#themeBtn');
-  function themeIcon(theme){
-    if(theme === 'dark'){
+  // Theme toggle code (same as before)
+  const themeBtn = $("#themeBtn");
+  function themeIcon(theme) {
+    if (theme === "dark") {
       return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.64 13A9 9 0 0 1 11 2.36 9 9 0 1 0 21.64 13z"></path></svg>`;
     }
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -51,86 +74,126 @@
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
             </svg>`;
   }
-  function setTheme(theme){
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('clock-ist-theme', theme);
+  function setTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("clock-ist-theme", theme);
     themeBtn.innerHTML = themeIcon(theme);
-    themeBtn.setAttribute('aria-pressed', theme === 'dark');
-    themeBtn.title = theme === 'dark' ? 'Switch to light' : 'Switch to dark';
+    themeBtn.setAttribute("aria-pressed", theme === "dark");
+    themeBtn.title = theme === "dark" ? "Switch to light" : "Switch to dark";
   }
-  const savedTheme = localStorage.getItem('clock-ist-theme');
-  const prefersDark = matchMedia?.('(prefers-color-scheme: dark)').matches;
-  setTheme(savedTheme ?? (prefersDark ? 'dark' : 'light'));
-  themeBtn.addEventListener('click', () => {
-    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  const savedTheme = localStorage.getItem("clock-ist-theme");
+  const prefersDark = matchMedia?.("(prefers-color-scheme: dark)").matches;
+  setTheme(savedTheme ?? (prefersDark ? "dark" : "light"));
+  themeBtn.addEventListener("click", () => {
+    const next =
+      document.documentElement.getAttribute("data-theme") === "dark"
+        ? "light"
+        : "dark";
     setTheme(next);
   });
 
-  const listEl = $('#taskList');
-  const inputEl = $('#taskInput');
-  const addBtn  = $('#addBtn');
+  // Task management
+  const listEl = $("#taskList");
+  const inputEl = $("#taskInput");
+  const addBtn = $("#addBtn");
 
   let tasks = [];
-  try { tasks = JSON.parse(localStorage.getItem('clock-ist-tasks') || '[]'); }
-  catch { tasks = []; }
 
-  function saveTasks(){
-    localStorage.setItem('clock-ist-tasks', JSON.stringify(tasks));
+  async function fetchTasks() {
+    try {
+      const res = await fetch(API_BASE);
+      tasks = await res.json();
+      render();
+    } catch (e) {
+      console.error("Error fetching tasks:", e);
+    }
   }
 
-  function render(){
-    listEl.innerHTML = '';
+  async function addTask() {
+    const text = inputEl.value.trim();
+    if (!text) {
+      inputEl.focus();
+      return;
+    }
+    try {
+      const res = await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: text }),
+      });
+      const todo = await res.json();
+      tasks.unshift(todo);
+      render();
+      inputEl.value = "";
+      inputEl.focus();
+    } catch (e) {
+      console.error("Error adding task:", e);
+    }
+  }
 
-    const active = tasks.filter(t => !t.completed)
-                        .sort((a,b)=> new Date(b.createdAt)-new Date(a.createdAt));
-    const done   = tasks.filter(t => t.completed)
-                        .sort((a,b)=> new Date(b.createdAt)-new Date(a.createdAt));
+  async function updateTask(task) {
+    try {
+      await fetch(`${API_BASE}${task.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: task.completed }),
+      });
+      render();
+    } catch (e) {
+      console.error("Error updating task:", e);
+    }
+  }
+
+  async function deleteTask(task) {
+    try {
+      await fetch(`${API_BASE}${task.id}`, { method: "DELETE" });
+      tasks = tasks.filter((t) => t.id !== task.id);
+      render();
+    } catch (e) {
+      console.error("Error deleting task:", e);
+    }
+  }
+
+  function render() {
+    listEl.innerHTML = "";
+    const active = tasks
+      .filter((t) => !t.completed)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const done = tasks
+      .filter((t) => t.completed)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     const ordered = [...active, ...done];
 
     ordered.forEach((t) => {
-      const li = document.createElement('li');
-      li.className = 'task' + (t.completed ? ' completed' : '');
-      li.setAttribute('data-id', t.id);
-
+      const li = document.createElement("li");
+      li.className = "task" + (t.completed ? " completed" : "");
       li.innerHTML = `
-        <input type="checkbox" ${t.completed ? 'checked' : ''} aria-label="Mark complete">
+        <input type="checkbox" ${
+          t.completed ? "checked" : ""
+        } aria-label="Mark complete">
         <div>
-          <div class="title">${escapeHTML(t.text)}</div>
-          <small>${formatISTStamp(t.createdAt)}</small>
+          <div class="title">${escapeHTML(t.description)}</div>
+          <small>${formatISTStamp(t.created_at)}</small>
         </div>
         <button class="delete-btn" aria-label="Delete task">&times;</button>
       `;
-
-      const box = li.querySelector('input');
-      box.addEventListener('change', () => {
+      const box = li.querySelector("input");
+      box.addEventListener("change", () => {
         t.completed = box.checked;
-        saveTasks();
-        render();
+        updateTask(t);
       });
 
-      const delBtn = li.querySelector('.delete-btn');
-      delBtn.addEventListener('click', () => {
-        tasks = tasks.filter(x => x.id !== t.id);
-        saveTasks();
-        render();
-      });
+      const delBtn = li.querySelector(".delete-btn");
+      delBtn.addEventListener("click", () => deleteTask(t));
 
       listEl.appendChild(li);
     });
   }
 
-  function addTask(){
-    const text = inputEl.value.trim();
-    if(!text) { inputEl.focus(); return; }
-    const now = new Date();
-    const id  = (crypto?.randomUUID?.() || ('t_' + Date.now().toString(36)));
-    tasks.unshift({ id, text, completed:false, createdAt: now.toISOString() });
-    saveTasks(); render();
-    inputEl.value = ''; inputEl.focus();
-  }
+  addBtn.addEventListener("click", addTask);
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addTask();
+  });
 
-  addBtn.addEventListener('click', addTask);
-  inputEl.addEventListener('keydown', (e) => { if(e.key === 'Enter') addTask(); });
-
-  render();
+  fetchTasks(); // Initial load
 })();
